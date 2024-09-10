@@ -1,0 +1,238 @@
+<html></html>
+
+</html>
+
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    </link>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #682962 0%, #9e5f97 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        #parent-div {
+            background: linear-gradient(135deg, #d887d0 0%, #702d69 100%);
+            border-radius: 5px;
+            padding: 20px;
+            width: 220px;
+            height: 190px;
+            text-align: center;
+            box-shadow: 0 25px 33px rgba(0, 0, 0, 0.3);
+        }
+
+        #child-div {
+            padding-top: 15px;
+            justify-content: center;
+            justify-content: space-between;
+            display: flex;
+        }
+
+        #btn {
+            width: 45px;
+            height: 20px;
+            color: whitesmoke;
+            background-color: #893c80;
+            border-color: #893c80;
+            border-radius: 2px;
+            font-size: 10px;
+            cursor: pointer;
+            box-shadow: none;
+        }
+
+        #text {
+            width: 160px;
+            border: none;
+            border-radius: 2px;
+            border-color: non;
+            box-shadow: none;
+            font-size: 10px;
+            text-align: center;
+            border: none;
+            outline: none;
+            border-color: #893c80;
+        }
+
+        #sound-div {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+            align-items: baseline;
+        }
+
+        #sound-i {
+            background-color: transparent;
+            color: #cbc5e5;
+            border: none;
+            outline: none;
+            cursor: pointer;
+        }
+
+        h6 {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+
+        .details {
+            color: #cbc5e5;
+            padding-right: 1px;
+            display: flex;
+            font-size: 9px;
+            margin-top: -35px;
+            gap: 4px;
+        }
+
+        #word-explain {
+            text-align: left;
+            font-size: 10px;
+        }
+
+        #word-eg {
+            font-size: 10px;
+            text-align: left;
+            font-style: italic;
+            border-left: 3px solid #7f3076;
+            padding-left: 15px;
+            margin-top: 10px;
+        }
+
+        #sound {
+            width: 100px;
+            height: 15px;
+        }
+
+        #err1 {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 12px;
+            margin-bottom: 30px;
+            padding-left: 55px;
+            color: red;
+        }
+
+        /* Media query for responsiveness */
+        @media (max-width: 600px) {
+            #parent-div {
+                width: 180px;
+                height: auto;
+            }
+
+            #text {
+                width: 140px;
+                font-size: 8px;
+            }
+
+            #btn {
+                width: 35px;
+                height: 18px;
+                font-size: 8px;
+            }
+
+            h6 {
+                font-size: 10px;
+            }
+
+            .details {
+                font-size: 7px;
+            }
+
+            #word-explain,
+            #word-eg {
+                font-size: 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="parent-div">
+        <div id="child-div">
+            <input type="text" id="text" placeholder="Give Word">
+            <button id="btn">Search</button>
+        </div>
+        <div id="sound-div" id="result">
+            <h6 id="h6">Sample</h6>
+            <button id="sound-i">
+                <audio id="sound" controls="false" type="audio/mpeg" src="https://api.dictionaryapi.dev/api/v2/entries/en">
+                </audio>
+            </button>
+        </div>
+        <div class="details">
+            <p>pos</p>
+            <p id="pos">:</p>
+        </div>
+        <p id="word-explain"></p>
+        <p id="word-eg"></p>
+        <h5 id="err1"></h5>
+    </div>
+
+</body>
+<script>
+    const result = document.getElementById("result");
+    const btn = document.getElementById("btn");
+    let wexp = document.getElementById("word-explain");
+    let weg = document.getElementById("word-eg");
+    let h6 = document.getElementById("h6");
+    let err1 = document.getElementById("err1");
+    let pos = document.getElementById("pos");
+    let aavaj = document.getElementById("sound");
+
+    let getdata = async () => {
+        const text = document.getElementById("text").value.trim();
+        if (!text) {
+            err1.innerHTML = "Please enter a word";
+            return;
+        }
+
+        const url = `https://api.dictionaryapi.dev/api/v2/entries/en/${text}`;
+        try {
+            let response = await fetch(url);
+            if (!response.ok) {
+                throw new Error("Word not found");
+            }
+
+            let data = await response.json();
+            let wordData = data[0];
+
+            // Word
+            h6.innerHTML = wordData.word || "No word found";
+
+            // Phonetics - handle if audio is available
+            const phonetics = wordData.phonetics.find(p => p.audio) || {};
+            aavaj.src = phonetics.audio || '';
+
+            // Part of Speech
+            pos.innerHTML = wordData.meanings[0]?.partOfSpeech || "N/A";
+
+            // Definition
+            wexp.innerHTML = wordData.meanings[0]?.definitions[0]?.definition || "No definition found";
+
+            // Synonyms or example
+            const synonyms = wordData.meanings[0]?.synonyms || [];
+            if (synonyms.length > 0) {
+                weg.innerHTML = synonyms[0];
+            } else {
+                weg.innerHTML = "No synonyms found";
+            }
+
+            // Clear error message if successful
+            err1.innerHTML = "";
+
+        } catch (error) {
+            err1.innerHTML = "Couldn't find the word.";
+        }
+    }
+
+    btn.addEventListener("click", getdata);
+</script>
+
+</html>
